@@ -27,6 +27,12 @@ export default async function Home() {
     .eq('status', 'active')
     .order('price_cents', { ascending: true })
 
+  // Log for debugging
+  if (error) {
+    console.error('Error fetching products:', error)
+  }
+  console.log('Products fetched:', products?.length || 0)
+
   // Separate products by category (matching database category values)
   const mcpProducts = products?.filter((p: DbProduct) => p.category === 'MCP Servers') || []
   const agentflowProducts = products?.filter((p: DbProduct) => p.category === 'SaaS') || []
