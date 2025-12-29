@@ -15,6 +15,9 @@ interface DbProduct {
   download_url: string | null
 }
 
+// Force dynamic rendering to fetch products on each request
+export const dynamic = 'force-dynamic'
+
 export default async function Home() {
   // Fetch products from Supabase
   const supabase = await createClient()
