@@ -34,36 +34,52 @@ export async function POST(req: NextRequest) {
         const session = event.data.object as Stripe.Checkout.Session
         const orderId = session.metadata?.order_id
 
+        console.log('[Webhook] checkout.session.completed received')
+        console.log('[Webhook] Session metadata:', session.metadata)
+        console.log('[Webhook] Order ID from metadata:', orderId)
+
         if (!orderId) {
-          console.error('No order_id in session metadata')
+          console.error('[Webhook] No order_id in session metadata')
           break
         }
 
         // Update order status to paid
-        const { error: updateError } = await supabase
+        console.log('[Webhook] Updating order status to paid...')
+        const { data: updateData, error: updateError } = await supabase
           .from('orders')
           .update({
             status: 'paid',
             stripe_payment_intent_id: session.payment_intent as string,
           })
           .eq('id', orderId)
+          .select()
 
         if (updateError) {
-          console.error('Error updating order:', updateError)
+          console.error('[Webhook] Error updating order:', updateError)
           break
         }
 
+        console.log('[Webhook] Order update result:', updateData)
+
         // Get order details for fulfillment
-        const { data: order } = await supabase
+        console.log('[Webhook] Fetching order for fulfillment...')
+        const { data: order, error: fetchError } = await supabase
           .from('orders')
           .select('*, order_items(*)')
           .eq('id', orderId)
           .single()
 
-        if (!order) {
-          console.error('Order not found:', orderId)
+        if (fetchError) {
+          console.error('[Webhook] Error fetching order:', fetchError)
           break
         }
+
+        if (!order) {
+          console.error('[Webhook] Order not found:', orderId)
+          break
+        }
+
+        console.log('[Webhook] Order fetched successfully:', { id: order.id, status: order.status, items_count: order.order_items?.length || 0 })
 
         // Trigger n8n order fulfillment workflow
         if (process.env.N8N_WEBHOOK_URL) {
