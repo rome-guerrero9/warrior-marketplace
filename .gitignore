@@ -39,3 +39,9 @@ next-env.d.ts
 # test files
 test-*.js
 check-*.js
+
+# supabase temp files
+supabase/.temp/
+
+# claude config (global, not project-specific)
+CLAUDE.md
