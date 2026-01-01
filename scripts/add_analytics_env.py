@@ -13,8 +13,8 @@ TEAM_ID = "team_BxKwz6BCuPuVSxJ0fVDlIp5Q"
 PROJECT_ID = "prj_uUugHVZNn0ihSEMOBFr2Sy7XjVlH"
 
 # Google Analytics Measurement ID
-# NOTE: This is a placeholder - Rome needs to create a GA4 property and replace this
-GA_MEASUREMENT_ID = "G-XXXXXXXXXX"  # Replace with actual GA4 Measurement ID
+# Actual GA4 property created by Rome Guerrero
+GA_MEASUREMENT_ID = "G-ZY17EEGMSE"
 
 def add_analytics_env_var() -> dict:
     """Add NEXT_PUBLIC_GA_MEASUREMENT_ID to Vercel"""
