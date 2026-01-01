@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { CheckCircle2, Download, ArrowRight, Mail } from 'lucide-react'
+import { SuccessTracking } from '@/app/components/SuccessTracking'
 
 interface PageProps {
     searchParams: Promise<{ session_id?: string }>
@@ -10,6 +11,9 @@ export default async function OrderSuccessPage({ searchParams }: PageProps) {
 
     return (
         <main className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center">
+            {/* Analytics Tracking */}
+            <SuccessTracking sessionId={session_id} />
+
             <div className="container mx-auto px-4 py-16">
                 <div className="max-w-2xl mx-auto text-center">
                     {/* Success Icon */}

@@ -3,6 +3,7 @@ import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Check, Shield, CreditCard, Download } from 'lucide-react'
 import { centsToDollars } from '@/lib/types'
+import { CheckoutTracking } from '@/app/components/CheckoutTracking'
 
 interface PageProps {
     params: Promise<{ slug: string }>
@@ -48,6 +49,9 @@ export default async function CheckoutPage({ params }: PageProps) {
 
     return (
         <main className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950">
+            {/* Analytics Tracking */}
+            <CheckoutTracking product={product} />
+
             <div className="container mx-auto px-4 py-12">
                 {/* Back Button */}
                 <Link
