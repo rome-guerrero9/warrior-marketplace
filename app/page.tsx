@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { centsToDollars } from '@/lib/types'
 import Link from 'next/link'
 import { Check, Download, ArrowRight, Zap, Shield, Code, Rocket, Users, Clock, Star } from 'lucide-react'
+import { OrganizationSchema, WebsiteSchema } from './components/StructuredData'
 
 interface DbProduct {
   id: string
@@ -50,6 +51,10 @@ export default async function Home() {
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950">
+      {/* SEO Structured Data */}
+      <OrganizationSchema />
+      <WebsiteSchema />
+
       {/* Hero Section */}
       <section className="relative overflow-hidden">
         {/* Background Effects */}
