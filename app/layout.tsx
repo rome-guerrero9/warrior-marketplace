@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
+import { Suspense } from 'react'
 import './globals.css'
 import { GoogleAnalytics, VercelAnalytics } from './components/Analytics'
 
@@ -87,7 +88,9 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         {children}
-        <GoogleAnalytics />
+        <Suspense fallback={null}>
+          <GoogleAnalytics />
+        </Suspense>
         <VercelAnalytics />
       </body>
     </html>
