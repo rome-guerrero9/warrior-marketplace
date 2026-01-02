@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google'
 import { Suspense } from 'react'
 import './globals.css'
 import { GoogleAnalytics, VercelAnalytics } from './components/Analytics'
+import { SpeedInsights } from '@vercel/speed-insights/next'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -92,6 +93,7 @@ export default function RootLayout({
           <GoogleAnalytics />
         </Suspense>
         <VercelAnalytics />
+        <SpeedInsights />
       </body>
     </html>
   )
