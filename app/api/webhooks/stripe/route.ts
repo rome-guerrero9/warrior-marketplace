@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { createClient } from '@/lib/supabase/server'
 import { headers } from 'next/headers'
+import { validateEnv } from '@/lib/env'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2023-10-16',
@@ -10,6 +11,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!
 
 export async function POST(req: NextRequest) {
+  validateEnv()
   const body = await req.text()
   const headersList = await headers()
   const signature = headersList.get('stripe-signature')!
@@ -82,18 +84,23 @@ export async function POST(req: NextRequest) {
         console.log('[Webhook] Order fetched successfully:', { id: order.id, status: order.status, items_count: order.order_items?.length || 0 })
 
         // Trigger n8n order fulfillment workflow
-        if (process.env.N8N_WEBHOOK_URL) {
-          await fetch(`${process.env.N8N_WEBHOOK_URL}/order-fulfillment`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              orderId: order.id,
-              orderNumber: order.order_number,
-              customerEmail: order.customer_email,
-              items: order.order_items,
-              totalCents: order.total_cents,
-            }),
-          })
+        try {
+          if (process.env.N8N_WEBHOOK_URL) {
+            await fetch(`${process.env.N8N_WEBHOOK_URL}/order-fulfillment`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                orderId: order.id,
+                orderNumber: order.order_number,
+                customerEmail: order.customer_email,
+                items: order.order_items,
+                totalCents: order.total_cents,
+              }),
+            })
+          }
+        } catch (error) {
+          console.error('n8n fulfillment failed:', error)
+          // Continue anyway - order is already marked as paid
         }
 
         console.log('Order fulfilled:', orderId)
