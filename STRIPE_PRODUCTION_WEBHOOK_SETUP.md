@@ -58,17 +58,17 @@
    **UPDATE** the following variables (change from Test to Live):
 
    - **Variable**: `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`
-     - **Current Value** (Test): `pk_test_51S5xAxCeTGTUCXhs47Iy0IirENA5iUxI7XdEUSBRb2teqXkBFBvvnPF5y53KEK1uEB22X0MCNEVs2vs0LDWbtzfR00nca0EZwE`
+     - **Current Value** (Test): `pk_test_[REDACTED]`
      - **New Value** (Live): Get from https://dashboard.stripe.com/apikeys (Publishable key)
      - Environment: **Production**
 
    - **Variable**: `STRIPE_SECRET_KEY`
-     - **Current Value** (Test): `sk_test_51S5xAxCeTGTUCXhsL8odH7ATo5rBmnPOGY75EENhJTTN6qHTpaiy0vEFmz0WTySFzPrCuJW6lvlX0f6v4KCyciun00dvLVXYJv`
+     - **Current Value** (Test): `sk_test_[REDACTED]`
      - **New Value** (Live): Get from https://dashboard.stripe.com/apikeys (Secret key - click "Reveal live key")
      - Environment: **Production**
 
    - **Variable**: `STRIPE_WEBHOOK_SECRET`
-     - **Current Value** (Test): `whsec_d5684d1343f24943dff7932553b6e5de48210bd6d1bd1bf731b73fd26e930092`
+     - **Current Value** (Test): `whsec_[REDACTED]`
      - **New Value** (Live): The webhook signing secret you copied in Step 1
      - Environment: **Production**
 
