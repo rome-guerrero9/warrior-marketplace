@@ -81,7 +81,7 @@ export default async function CheckoutPage({ params }: PageProps) {
 
                                 {/* Features */}
                                 <div className="space-y-3 pt-6 border-t border-slate-800">
-                                    <h3 className="text-lg font-semibold text-white mb-4">What's Included</h3>
+                                    <h3 className="text-lg font-semibold text-white mb-4">What&apos;s Included</h3>
                                     {product.category === 'MCP Servers' ? (
                                         <>
                                             <Feature>Instant download after purchase</Feature>

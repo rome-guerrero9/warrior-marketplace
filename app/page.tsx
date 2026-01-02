@@ -436,7 +436,7 @@ export default async function Home() {
       <section className="py-16 border-t border-slate-800">
         <div className="container mx-auto px-4 text-center">
           <p className="text-slate-500 text-sm mb-4">
-            Ready to launch? 🚀 Follow the setup guide and you'll have a fully functional marketplace in 30-45 minutes.
+            Ready to launch? 🚀 Follow the setup guide and you&apos;ll have a fully functional marketplace in 30-45 minutes.
           </p>
           <p className="text-slate-600 text-xs">
             <strong>Rome Guerrero</strong> | Warrior AI Automations • Your marketplace, your rules, your revenue.

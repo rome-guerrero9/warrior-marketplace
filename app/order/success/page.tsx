@@ -38,7 +38,7 @@ export default async function OrderSuccessPage({ searchParams }: PageProps) {
 
                         <div className="space-y-4">
                             <Step number={1} title="Check your email">
-                                We've sent a confirmation email with your receipt and download links.
+                                We&apos;ve sent a confirmation email with your receipt and download links.
                             </Step>
                             <Step number={2} title="Download your products">
                                 Click the download button in your email to get your files.
