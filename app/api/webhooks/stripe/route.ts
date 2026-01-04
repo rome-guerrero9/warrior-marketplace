@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/server'
 import { headers } from 'next/headers'
 import { validateEnv } from '@/lib/env'
 
@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
   try {
     switch (event.type) {

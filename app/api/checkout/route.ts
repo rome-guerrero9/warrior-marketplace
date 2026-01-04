@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/server'
 import { generateOrderNumber } from '@/lib/utils'
 import { validateEnv } from '@/lib/env'
 
@@ -29,8 +29,8 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // Get Supabase client
-    const supabase = await createClient()
+    // Get Supabase admin client (bypasses RLS for order creation)
+    const supabase = createAdminClient()
 
     // Get product details from database
     const productIds = items.map((item: any) => item.productId)
