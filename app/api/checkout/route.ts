@@ -9,10 +9,21 @@ export async function POST(req: NextRequest) {
     // Validate env vars first
     validateEnv()
 
+    // Log for debugging
+    console.log('[Checkout] Environment check:', {
+      hasStripeKey: !!process.env.STRIPE_SECRET_KEY,
+      keyPrefix: process.env.STRIPE_SECRET_KEY?.substring(0, 7),
+      hasSupabaseServiceRole: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
+    })
+
     // Initialize Stripe after env validation
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
       apiVersion: '2023-10-16',
+      maxNetworkRetries: 2,
+      timeout: 30000, // 30 second timeout
     })
+
+    console.log('[Checkout] Stripe client initialized')
     const { items, customerEmail } = await req.json()
 
     if (!items || items.length === 0) {
@@ -126,18 +137,31 @@ export async function POST(req: NextRequest) {
     }
 
     // Create Stripe checkout session
-    const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card'],
-      line_items: lineItems,
-      mode: 'payment',
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/order/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/cart`,
-      customer_email: customerEmail,
-      metadata: {
-        order_id: order.id,
-        order_number: orderNumber,
-      },
-    })
+    console.log('[Checkout] Creating Stripe checkout session...')
+    let session
+    try {
+      session = await stripe.checkout.sessions.create({
+        payment_method_types: ['card'],
+        line_items: lineItems,
+        mode: 'payment',
+        success_url: `${process.env.NEXT_PUBLIC_APP_URL}/order/success?session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/cart`,
+        customer_email: customerEmail,
+        metadata: {
+          order_id: order.id,
+          order_number: orderNumber,
+        },
+      })
+      console.log('[Checkout] Stripe session created successfully:', session.id)
+    } catch (stripeError: any) {
+      console.error('[Checkout] Stripe API error:', {
+        message: stripeError.message,
+        type: stripeError.type,
+        code: stripeError.code,
+        statusCode: stripeError.statusCode,
+      })
+      throw stripeError
+    }
 
     // Update order with Stripe session ID
     await supabase
