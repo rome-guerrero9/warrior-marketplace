@@ -4,14 +4,16 @@ import { createAdminClient } from '@/lib/supabase/server'
 import { headers } from 'next/headers'
 import { validateEnv } from '@/lib/env'
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2023-10-16',
-})
-
-const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!
-
 export async function POST(req: NextRequest) {
+  // Validate env vars first
   validateEnv()
+
+  // Initialize Stripe after env validation
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+    apiVersion: '2023-10-16',
+  })
+
+  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!
   const body = await req.text()
   const headersList = await headers()
   const signature = headersList.get('stripe-signature')!
