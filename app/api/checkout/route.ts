@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import Stripe from 'stripe'
 import { createAdminClient } from '@/lib/supabase/server'
 import { generateOrderNumber } from '@/lib/utils'
 import { validateEnv } from '@/lib/env'
+import { getStripeClient } from '@/lib/stripe'
 
 export async function POST(req: NextRequest) {
   try {
@@ -16,14 +16,8 @@ export async function POST(req: NextRequest) {
       hasSupabaseServiceRole: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
     })
 
-    // Initialize Stripe after env validation
-    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-      apiVersion: '2023-10-16',
-      maxNetworkRetries: 2,
-      timeout: 30000, // 30 second timeout
-    })
-
-    console.log('[Checkout] Stripe client initialized')
+    // Get Stripe client singleton (optimized for Vercel serverless)
+    const stripe = getStripeClient()
     const { items, customerEmail } = await req.json()
 
     if (!items || items.length === 0) {

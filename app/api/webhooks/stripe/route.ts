@@ -1,17 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
-import Stripe from 'stripe'
 import { createAdminClient } from '@/lib/supabase/server'
 import { headers } from 'next/headers'
 import { validateEnv } from '@/lib/env'
+import { getStripeClient } from '@/lib/stripe'
 
 export async function POST(req: NextRequest) {
   // Validate env vars first
   validateEnv()
 
-  // Initialize Stripe after env validation
-  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-    apiVersion: '2023-10-16',
-  })
+  // Get Stripe client singleton (now with consistent timeout/retry config)
+  const stripe = getStripeClient()
 
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!
   const body = await req.text()

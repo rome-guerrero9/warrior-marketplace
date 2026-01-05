@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
-import Stripe from 'stripe'
 import { validateEnv } from '@/lib/env'
+import { getStripeClient } from '@/lib/stripe'
 
 export async function GET() {
   try {
@@ -19,16 +19,12 @@ export async function GET() {
       stripe_init: {
         api_version: '2023-10-16',
         max_retries: 2,
-        timeout: 30000,
+        timeout: 5000, // Reduced from 30000 for Vercel serverless limits
       },
     }
 
-    // Try to initialize Stripe
-    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-      apiVersion: '2023-10-16',
-      maxNetworkRetries: 2,
-      timeout: 30000,
-    })
+    // Get Stripe client singleton
+    const stripe = getStripeClient()
 
     diagnostics.stripe_client_created = true
 
