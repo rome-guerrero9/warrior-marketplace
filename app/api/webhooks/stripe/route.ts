@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import type Stripe from 'stripe'
 import { createAdminClient } from '@/lib/supabase/server'
 import { headers } from 'next/headers'
 import { validateEnv } from '@/lib/env'
