@@ -32,6 +32,27 @@ export async function POST(req: NextRequest) {
   const supabase = createAdminClient()
 
   try {
+    // DEDUPLICATION: Check if this event has already been processed
+    const { data: existingEvent, error: checkError } = await supabase
+      .from('stripe_events')
+      .select('event_id')
+      .eq('event_id', event.id)
+      .single()
+
+    if (existingEvent) {
+      console.log('[Webhook] Event already processed:', event.id)
+      return NextResponse.json({ received: true, already_processed: true })
+    }
+
+    if (checkError && checkError.code !== 'PGRST116') {
+      // PGRST116 means "not found", which is expected for new events
+      console.error('[Webhook] Error checking event deduplication:', checkError)
+      return NextResponse.json(
+        { error: 'Failed to verify event deduplication' },
+        { status: 500 }
+      )
+    }
+
     switch (event.type) {
       case 'checkout.session.completed': {
         const session = event.data.object as Stripe.Checkout.Session
@@ -42,8 +63,27 @@ export async function POST(req: NextRequest) {
         console.log('[Webhook] Order ID from metadata:', orderId)
 
         if (!orderId) {
-          console.error('[Webhook] No order_id in session metadata')
-          break
+          console.error('[Webhook] CRITICAL: No order_id in session metadata', {
+            sessionId: session.id,
+            customerEmail: session.customer_email,
+            amount: session.amount_total
+          })
+
+          // Record the event even if it failed to prevent retries
+          await supabase.from('stripe_events').insert({
+            event_id: event.id,
+            event_type: event.type,
+            order_id: null,
+            metadata: {
+              error: 'missing_order_id',
+              session_id: session.id
+            }
+          })
+
+          return NextResponse.json(
+            { error: 'Missing order_id in session metadata' },
+            { status: 400 }
+          )
         }
 
         // Update order status to paid
@@ -58,8 +98,26 @@ export async function POST(req: NextRequest) {
           .select()
 
         if (updateError) {
-          console.error('[Webhook] Error updating order:', updateError)
-          break
+          console.error('[Webhook] CRITICAL: Error updating order:', updateError, {
+            orderId,
+            sessionId: session.id
+          })
+
+          // Record the failed event
+          await supabase.from('stripe_events').insert({
+            event_id: event.id,
+            event_type: event.type,
+            order_id: orderId,
+            metadata: {
+              error: 'order_update_failed',
+              error_details: updateError.message
+            }
+          })
+
+          return NextResponse.json(
+            { error: 'Failed to update order status' },
+            { status: 500 }
+          )
         }
 
         console.log('[Webhook] Order update result:', updateData)
@@ -72,14 +130,25 @@ export async function POST(req: NextRequest) {
           .eq('id', orderId)
           .single()
 
-        if (fetchError) {
-          console.error('[Webhook] Error fetching order:', fetchError)
-          break
-        }
+        if (fetchError || !order) {
+          console.error('[Webhook] CRITICAL: Error fetching order:', fetchError || 'Order not found', {
+            orderId,
+            sessionId: session.id
+          })
 
-        if (!order) {
-          console.error('[Webhook] Order not found:', orderId)
-          break
+          // Still record the event as processed (order was updated to paid)
+          await supabase.from('stripe_events').insert({
+            event_id: event.id,
+            event_type: event.type,
+            order_id: orderId,
+            metadata: {
+              warning: 'order_fetch_failed_after_update',
+              session_id: session.id
+            }
+          })
+
+          // Return success since order was marked as paid
+          return NextResponse.json({ received: true, warning: 'Order updated but fetch failed' })
         }
 
         console.log('[Webhook] Order fetched successfully:', { id: order.id, status: order.status, items_count: order.order_items?.length || 0 })
@@ -105,6 +174,18 @@ export async function POST(req: NextRequest) {
         }
 
         console.log('Order fulfilled:', orderId)
+
+        // Record this event as processed
+        await supabase.from('stripe_events').insert({
+          event_id: event.id,
+          event_type: event.type,
+          order_id: orderId,
+          metadata: {
+            session_id: session.id,
+            customer_email: order.customer_email
+          }
+        })
+
         break
       }
 
@@ -120,6 +201,17 @@ export async function POST(req: NextRequest) {
         }
 
         console.log('Payment failed:', paymentIntent.id)
+
+        // Record this event as processed
+        await supabase.from('stripe_events').insert({
+          event_id: event.id,
+          event_type: event.type,
+          order_id: orderId || null,
+          metadata: {
+            payment_intent_id: paymentIntent.id
+          }
+        })
+
         break
       }
 
@@ -142,6 +234,18 @@ export async function POST(req: NextRequest) {
         }
 
         console.log('Charge refunded:', charge.id)
+
+        // Record this event as processed
+        await supabase.from('stripe_events').insert({
+          event_id: event.id,
+          event_type: event.type,
+          order_id: order?.id || null,
+          metadata: {
+            charge_id: charge.id,
+            payment_intent_id: paymentIntentId
+          }
+        })
+
         break
       }
 

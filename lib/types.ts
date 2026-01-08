@@ -184,6 +184,16 @@ export interface OrderItem {
   quantity: number
 }
 
+export interface CheckoutItem {
+  productId: string
+  quantity?: number
+}
+
+export interface CheckoutRequest {
+  items: CheckoutItem[]
+  customerEmail: string
+}
+
 export interface User {
   id: string
   email: string
