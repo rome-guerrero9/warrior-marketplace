@@ -5,6 +5,8 @@
  * by cleaning user input before it's stored in the database or sent to external APIs.
  */
 
+import sanitizeHtml from 'sanitize-html'
+
 /**
  * Remove potentially dangerous HTML/script tags from text
  *
@@ -85,13 +87,25 @@ export function sanitizeEmail(email: string): string | null {
 export function sanitizeDescription(description: string, maxLength: number = 5000): string {
   if (typeof description !== 'string') return ''
 
-  // Allow some basic formatting but escape dangerous characters
-  const cleaned = description
-    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')  // Remove script tags
-    .replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, '')  // Remove iframes
-    .replace(/javascript:/gi, '')
-    .substring(0, maxLength)
-    .trim()
+  // Allow some basic formatting but remove dangerous tags and attributes safely
+  const sanitizedHtml = sanitizeHtml(description, {
+    allowedTags: [
+      'b', 'i', 'em', 'strong', 'u',
+      'p', 'br', 'ul', 'ol', 'li',
+      'span', 'div',
+      'a'
+    ],
+    allowedAttributes: {
+      a: ['href', 'title'],
+      span: ['style'],
+      div: ['style']
+    },
+    allowedSchemes: ['http', 'https', 'mailto'],
+    allowedSchemesByTag: {},
+    allowProtocolRelative: false
+  })
+
+  const cleaned = sanitizedHtml.substring(0, maxLength).trim()
 
   return cleaned
 }
